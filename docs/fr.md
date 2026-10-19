@@ -155,7 +155,8 @@ désactivées dans la configuration.
   sont pas annoncés.
 - **En attente de validation** compte les fichiers que Tdarr garde dans l'onglet
   Staged jusqu'à votre accord (quand « Auto accept successful transcodes » est
-  désactivé).
+  désactivé). Tdarr les compte encore dans le **À traiter** de leur
+  bibliothèque.
 - L'intégration ne modifie ni les réglages de transcodage, ni les plugins, ni
   les flux de Tdarr, et ne supprime rien.
 - Sans lien avec Tdarr ni ses auteurs.

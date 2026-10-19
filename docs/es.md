@@ -155,7 +155,8 @@ configuración.
   avisan.
 - **Pendientes de revisión** cuenta los archivos que Tdarr guarda en la pestaña
   Staged hasta que usted los acepta (cuando «Auto accept successful transcodes»
-  está desactivado).
+  está desactivado). Tdarr los sigue contando en el **Por procesar** de su
+  biblioteca.
 - La integración no modifica los ajustes de transcodificación, los plugins ni
   los flujos de Tdarr, y no elimina nada.
 - Sin relación con Tdarr ni con sus autores.

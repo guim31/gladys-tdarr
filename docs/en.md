@@ -144,7 +144,8 @@ commands are off in the configuration.
   between two readings, and **Tdarr file failed** announces at most ten files
   per reading. Errors older than an hour are not announced.
 - **Waiting for review** counts the files Tdarr keeps in the Staged tab until
-  you accept them (when "Auto accept successful transcodes" is off).
+  you accept them (when "Auto accept successful transcodes" is off). Tdarr
+  still counts them in the **To process** of their library.
 - The integration does not change the transcode settings, the plugins or the
   flows of Tdarr, and deletes nothing.
 - Not affiliated with Tdarr or its authors.

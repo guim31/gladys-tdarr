@@ -156,7 +156,8 @@ Konfiguration ausgeschaltet sind.
   **Tdarr-Datei fehlgeschlagen** meldet höchstens zehn Dateien pro Abfrage.
   Fehler, die älter als eine Stunde sind, werden nicht gemeldet.
 - **Warten auf Prüfung** zählt die Dateien, die Tdarr im Tab Staged behält, bis
-  du sie annimmst (wenn „Auto accept successful transcodes“ aus ist).
+  du sie annimmst (wenn „Auto accept successful transcodes“ aus ist). Tdarr zählt sie
+  weiterhin unter **Zu bearbeiten** ihrer Bibliothek.
 - Die Integration ändert weder die Transcodierungseinstellungen noch die
   Plugins oder Flows von Tdarr und löscht nichts.
 - Nicht mit Tdarr oder seinen Autoren verbunden.
