@@ -1,0 +1,46 @@
+{
+  "pieStats": {
+    "totalFiles": 5,
+    "totalTranscodeCount": 5.0,
+    "sizeDiff": 0.0,
+    "totalHealthCheckCount": 10.0,
+    "status": {
+      "transcode": [
+        {
+          "name": "Queued",
+          "value": 5
+        }
+      ],
+      "healthcheck": [
+        {
+          "name": "Success",
+          "value": 5
+        }
+      ]
+    },
+    "video": {
+      "codecs": [
+        {
+          "name": "h264",
+          "value": 5
+        }
+      ],
+      "containers": [
+        {
+          "name": "mkv",
+          "value": 5
+        }
+      ],
+      "resolutions": [
+        {
+          "name": "480p",
+          "value": 5
+        }
+      ]
+    },
+    "audio": {
+      "codecs": [],
+      "containers": []
+    }
+  }
+}

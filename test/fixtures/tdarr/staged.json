@@ -1,0 +1,29 @@
+{
+  "array": [
+    {
+      "_id": "/media/movies/Broken Movie.mkv",
+      "workerType": "transcodecpu",
+      "start": 1792439899933,
+      "job": {
+        "version": "3.01.00",
+        "footprintId": "OXCZGJH",
+        "jobId": "Ccfkdxo",
+        "start": 1792439899933,
+        "type": "transcode",
+        "fileId": "OXCZGJH()3.01.00()transcode()Ccfkdxo()1792439899933.txt"
+      },
+      "status": "transcodeSuccess",
+      "handling": "",
+      "nodeID": "Csmjqig",
+      "inLimbo": false,
+      "workerGenus": "classic",
+      "flowPluginHandler": {
+        "flowPluginStates": [],
+        "flowEdges": []
+      },
+      "workDir": "/temp/tdarr-workDir2-Ccfkdxo",
+      "orphanedProcessingSince": null
+    }
+  ],
+  "totalCount": 5
+}

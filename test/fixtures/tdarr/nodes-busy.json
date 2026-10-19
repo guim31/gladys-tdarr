@@ -1,0 +1,158 @@
+{
+  "Csmjqig": {
+    "_id": "Csmjqig",
+    "nodeName": "InternalNode",
+    "remoteAddress": "127.0.0.1",
+    "config": {
+      "nodeID": "Csmjqig",
+      "nodeName": "InternalNode",
+      "serverURL": "http://0.0.0.0:8266",
+      "serverIP": "0.0.0.0",
+      "serverPort": "8266",
+      "handbrakePath": "",
+      "ffmpegPath": "",
+      "mkvpropeditPath": "",
+      "pathTranslators": [
+        {
+          "server": "",
+          "node": ""
+        }
+      ],
+      "nodeType": "mapped",
+      "unmappedNodeCache": "/app/unmappedNodeCache",
+      "logLevel": "INFO",
+      "priority": -1.0,
+      "cronPluginUpdate": "",
+      "apiKey": "tapi_000000000000000000000000",
+      "maxLogSizeMB": 10,
+      "pollInterval": 2000,
+      "startPaused": false,
+      "platform_arch_isdocker": "linux_x64_docker_true",
+      "processPid": 569,
+      "nodeRegisteredCount": 0,
+      "seededWorkerLimits": {}
+    },
+    "workers": {
+      "dear-deer": {
+        "_id": "dear-deer",
+        "workerType": "transcodecpu",
+        "created": true,
+        "idle": false,
+        "isFlowWorker": false,
+        "bypassWorkerLimits": false,
+        "workDir": "/temp/tdarr-workDir2-zeVRP2b",
+        "sourcefileSizeInGbytes": 0.00013018213212490082,
+        "originalfileSizeInGbytes": 0.00013330650329589845,
+        "preset": "",
+        "file": "/media/movies/Test Movie 4.mkv",
+        "percentage": 0.0,
+        "fps": 0,
+        "ETA": "Calc...",
+        "status": "Scanning",
+        "statusTs": 1792439672804,
+        "startTime": 0,
+        "lastPluginDetails": {},
+        "job": {
+          "version": "3.01.00",
+          "footprintId": "4P02JvY",
+          "jobId": "zeVRP2b",
+          "start": 1792439672012,
+          "type": "transcode",
+          "fileId": "4P02JvY()3.01.00()transcode()zeVRP2b()1792439672012.txt"
+        },
+        "estSize": 0.0,
+        "CLIType": "",
+        "outputFileSizeInGbytes": 0.0,
+        "workerLog": ""
+      }
+    },
+    "resStats": {
+      "process": {
+        "uptime": 210,
+        "heapUsedMB": "38.3",
+        "heapTotalMB": "2040.1"
+      },
+      "os": {
+        "cpuPerc": "92.35",
+        "memUsedGB": "11.8",
+        "memTotalGB": "15.4"
+      }
+    },
+    "workerLimits": {
+      "healthcheckcpu": 1,
+      "healthcheckgpu": 0,
+      "transcodecpu": 1,
+      "transcodegpu": 0
+    },
+    "schedule": [
+      {
+        "_id": "00-01",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 0
+      },
+      {
+        "_id": "01-02",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 0
+      }
+    ],
+    "gpuSelect": "-",
+    "nodeTags": "mapped",
+    "allowGpuDoCpu": false,
+    "maxGpuWorkers": 100,
+    "nodePaused": false,
+    "deleteCacheAnyStageError": true,
+    "scheduleEnabled": false,
+    "processPriority": "normal",
+    "thoroughHealthCheckCpuExtraInputArgs": "",
+    "thoroughHealthCheckGpuExtraInputArgs": "",
+    "thoroughHealthCheckCpuExtraArgs": "",
+    "thoroughHealthCheckGpuExtraArgs": "",
+    "priority": 0.0,
+    "queueLengths": {
+      "healthcheckcpu": 0,
+      "healthcheckgpu": 0,
+      "transcodecpu": 1,
+      "transcodegpu": 1
+    },
+    "librariesToNotProcess": {},
+    "processes": {
+      "1646": {
+        "ppid": 569,
+        "pid": 1646,
+        "execPath": "/app/Tdarr_Node/rust/Tdarr_Node_Rust",
+        "filename": "/app/Tdarr_Node/srcug/rust/scanner-tool-runner/run-scanner-tool.js launching...",
+        "lastUpdateTime": 1792439672826,
+        "memory": {
+          "rss": 0,
+          "heapTotal": 0,
+          "heapUsed": 0,
+          "external": 0,
+          "arrayBuffers": 0
+        }
+      },
+      "569": {
+        "ppid": 261,
+        "pid": 569,
+        "execPath": "/app/Tdarr_Node/rust/Tdarr_Node_Rust",
+        "filename": "/app/Tdarr_Node/rust/Tdarr_Node_Rust",
+        "lastUpdateTime": 1792439672843,
+        "memory": {
+          "rss": 40157184,
+          "heapTotal": 2139168768,
+          "heapUsed": 40157184,
+          "external": 0,
+          "arrayBuffers": 0
+        }
+      }
+    },
+    "nodeEngine": "rust",
+    "protocolVersion": "rust-bootstrap-1",
+    "initPluginDownload": false,
+    "lastSeenTime": 1792439672989
+  }
+}

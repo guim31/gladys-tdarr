@@ -32,15 +32,20 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/app.js                        registers every handler on the hub (tests drive the same wiring)
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
+src/tdarr/http.js                 the one network function (node:http/https), the test seam
+src/tdarr/client.js               Tdarr API v2 calls, error kinds (never logs the API key)
+src/tdarr/model.js                parsers of the answers (real Tdarr 3.01 shapes)
+src/devices.js                    server, node and library devices, feature names in 4 languages
+src/hub.js                        timer, states, scene events, commands, connection status
+src/scenes.js                     scene action handlers (manifest `scene_actions`)
+src/widgets.js                    the `overview` widget (manifest `widgets`)
+src/texts.js                      messages in 4 languages
+src/store.js                      /data/tdarr-state.json (nodes seen, failure cursors)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (mandatory)
+test/                             node --test, against the SDK's fake Gladys and test/helpers/fakeTdarr.js
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +75,10 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** is in four languages (English, French, German with
+  "du", Spanish with "usted"): action messages, manifest texts, widget texts,
+  feature names and `docs/{en,fr,de,es}.md`, kept in sync
+  (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -233,3 +240,31 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Tdarr (notes de cette intégration)
+
+Vérifié sur un vrai serveur **Tdarr 3.01.00** (image `ghcr.io/haveagitgat/tdarr`, moteur serveur Rust, nœud interne),
+le 19/10/2026. Réponses réelles anonymisées dans `test/fixtures/tdarr/`.
+
+- **Tdarr 3 active l'authentification par défaut** (`auth: true`) : sans clé, tout `/api/v2/*` répond 401
+  `No auth token provided`, sauf `/status` (public). Une mauvaise clé : 401 `Invalid API key`. En test Docker, la clé
+  se sème par la variable `seededApiKey`.
+- **`/get-nodes` renvoie la config de chaque nœud, sa propre clé d'API comprise** (`config.apiKey`), et les réglages
+  globaux contiennent la clé Pro (`tdarrKey`) : les parseurs n'en gardent rien, ne jamais logger ces réponses.
+- **L'`_id` d'un nœud change à chaque démarrage du nœud** (shortid aléatoire) : l'identité Gladys d'un nœud est son
+  `nodeName` (slug). L'`_id` sert seulement à `update-node`. Les nœuds vus sont gardés sous `/data`, et ceux ajoutés à
+  Gladys sont relus via `getDevices()` (paramètre `TDARR_NODE`) pour rester « hors ligne » après un redémarrage.
+- Tables de la page d'accueil (`StatisticsJSONDB.tableNCount`) : 1 file de transcodage, 2 transcodés, 3 transcodages en
+  échec, 4 file de contrôle, 5 contrôles OK, 6 contrôles en échec. Lignes : `POST /client/status-tables` avec
+  `opts.table: "table3"`, tri `lastTranscodeDate` (ou `lastHealthCheckDate`) décroissant.
+- **Fichiers « staged »** : quand `autoAcceptTranscodes` est faux (défaut), un fichier transcodé attend une validation
+  et **sort de toutes les tables** (compté par `POST /client/staged`, `totalCount`) ; dans `stats/get-pies` d'une
+  bibliothèque il reste compté « Queued ». D'où « À traiter » qui inclut les fichiers en attente de validation.
+  Le succès complet d'un transcodage (fichier remplacé, `sizeDiff` > 0) n'a pas pu être produit en test.
+- `update-node`, `scan-files` et les écritures `cruddb` répondent `OK` en texte brut.
+- `sizeDiff` est en Go, signé.
+- Le compteur `table3Count` peut monter une lecture après que la file s'est vidée : `queue_empty` peut donc partir
+  avec un total d'échecs en retard d'un fichier.
+- Créer une bibliothèque par l'API (test) : `cruddb` `insert` dans `LibrarySettingsJSONDB` avec `folder`, `cache`,
+  `ffmpegscan: true` (sinon le contrôle échoue : « neither handbrakescan nor ffmpegscan »), et pour un transcodage
+  classique `ffmpeg: true`, `preset: ", -c:v libx265 …"` (la virgule sépare entrée et sortie) et un `decisionMaker`.

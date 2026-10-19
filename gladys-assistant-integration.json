@@ -1,177 +1,644 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Tdarr",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Tdarr in Gladys: transcode queue, nodes, failed files, space saved, pause and resume.",
+    "fr": "Tdarr dans Gladys : file de transcodage, nœuds, fichiers en échec, place gagnée, pause et reprise.",
+    "de": "Tdarr in Gladys: Transcodierung, Nodes, fehlgeschlagene Dateien, gesparter Speicher, Pause.",
+    "es": "Tdarr en Gladys: cola de transcodificación, nodos, archivos fallidos, espacio ahorrado, pausa."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-tdarr:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-tdarr/main/cover.png",
+  "categories": ["multimedia"],
+  "transports": ["local"],
   "config_schema": [
     {
-      "key": "intro",
+      "key": "server",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Tdarr server",
+        "fr": "Serveur Tdarr",
+        "de": "Tdarr-Server",
+        "es": "Servidor Tdarr"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Address of the Tdarr web interface, and its API key when the authentication is on (Tdarr 2.24 or later: Tools → API keys).",
+        "fr": "Adresse de l'interface web de Tdarr, et sa clé d'API si l'authentification est activée (Tdarr 2.24 ou plus : Tools → API keys).",
+        "de": "Adresse der Tdarr-Weboberfläche und ihr API-Schlüssel, wenn die Authentifizierung aktiv ist (Tdarr 2.24 oder neuer: Tools → API keys).",
+        "es": "Dirección de la interfaz web de Tdarr y su clave de API si la autenticación está activada (Tdarr 2.24 o posterior: Tools → API keys)."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://docs.tdarr.io/docs/api",
+          "label": {
+            "en": "Tdarr API documentation",
+            "fr": "Documentation de l'API Tdarr",
+            "de": "Dokumentation der Tdarr-API",
+            "es": "Documentación de la API de Tdarr"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "url",
+      "type": "string",
+      "label": {
+        "en": "Address",
+        "fr": "Adresse",
+        "de": "Adresse",
+        "es": "Dirección"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
-    },
-    {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
       "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+        "en": "IP address or name of the server, with the port of the web interface (8265 by default).",
+        "fr": "Adresse IP ou nom du serveur, avec le port de l'interface web (8265 par défaut).",
+        "de": "IP-Adresse oder Name des Servers, mit dem Port der Weboberfläche (standardmäßig 8265).",
+        "es": "Dirección IP o nombre del servidor, con el puerto de la interfaz web (8265 por defecto)."
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "placeholder": {
+        "en": "e.g. 192.168.1.2:8265",
+        "fr": "ex. 192.168.1.2:8265",
+        "de": "z. B. 192.168.1.2:8265",
+        "es": "p. ej. 192.168.1.2:8265"
+      },
       "required": false,
-      "default": "celsius",
+      "default": ""
+    },
+    {
+      "key": "api_key",
+      "type": "secret",
+      "label": {
+        "en": "API key",
+        "fr": "Clé d'API",
+        "de": "API-Schlüssel",
+        "es": "Clave de API"
+      },
+      "description": {
+        "en": "Only when the authentication of Tdarr is on. Tdarr: Tools → API keys.",
+        "fr": "Seulement si l'authentification de Tdarr est activée. Tdarr : Tools → API keys.",
+        "de": "Nur wenn die Authentifizierung von Tdarr aktiv ist. Tdarr: Tools → API keys.",
+        "es": "Solo si la autenticación de Tdarr está activada. Tdarr: Tools → API keys."
+      },
+      "required": false
+    },
+    {
+      "key": "allow_control",
+      "type": "boolean",
+      "label": {
+        "en": "Allow pause and resume",
+        "fr": "Autoriser la pause et la reprise",
+        "de": "Pause und Fortsetzen erlauben",
+        "es": "Permitir pausa y reanudación"
+      },
+      "description": {
+        "en": "Gladys may pause and resume the nodes (switches, scenes, widget button) and start a library scan. Off: read only.",
+        "fr": "Gladys peut mettre en pause et relancer les nœuds (interrupteurs, scènes, bouton du widget) et lancer un scan. Désactivé : lecture seule.",
+        "de": "Gladys darf die Nodes pausieren und fortsetzen (Schalter, Szenen, Widget-Taste) und einen Scan starten. Aus: nur lesen.",
+        "es": "Gladys puede pausar y reanudar los nodos (interruptores, escenas, botón del widget) y lanzar un escaneo. Desactivado: solo lectura."
+      },
+      "required": false,
+      "default": true
+    },
+    {
+      "key": "poll_interval",
+      "type": "select",
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Intervalle de rafraîchissement",
+        "de": "Aktualisierungsintervall",
+        "es": "Intervalo de actualización"
+      },
+      "description": {
+        "en": "How often the server is read: queues, nodes, libraries, errors.",
+        "fr": "Fréquence de lecture du serveur : files, nœuds, bibliothèques, échecs.",
+        "de": "Wie oft der Server gelesen wird: Warteschlangen, Nodes, Bibliotheken, Fehler.",
+        "es": "Con qué frecuencia se lee el servidor: colas, nodos, bibliotecas, errores."
+      },
+      "required": false,
+      "default": "60",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "30",
+          "label": {
+            "en": "30 seconds",
+            "fr": "30 secondes",
+            "de": "30 Sekunden",
+            "es": "30 segundos"
+          }
+        },
+        {
+          "value": "60",
+          "label": {
+            "en": "1 minute",
+            "fr": "1 minute",
+            "de": "1 Minute",
+            "es": "1 minuto"
+          }
+        },
+        {
+          "value": "120",
+          "label": {
+            "en": "2 minutes",
+            "fr": "2 minutes",
+            "de": "2 Minuten",
+            "es": "2 minutos"
+          }
+        },
+        {
+          "value": "300",
+          "label": {
+            "en": "5 minutes",
+            "fr": "5 minutes",
+            "de": "5 Minuten",
+            "es": "5 minutos"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the feature names",
+        "fr": "Langue des noms de fonctionnalités",
+        "de": "Sprache der Funktionsnamen",
+        "es": "Idioma de los nombres de funciones"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Names given to the features when a device is added, and the sentence of the summary action.",
+        "fr": "Noms donnés aux fonctionnalités à l'ajout d'un appareil, et phrase de l'action de résumé.",
+        "de": "Namen der Funktionen beim Hinzufügen eines Geräts und Satz der Zusammenfassungsaktion.",
+        "es": "Nombres de las funciones al añadir un dispositivo y frase de la acción de resumen."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "description": {
+        "en": "Reads the Tdarr server now and reports what it finds.",
+        "fr": "Lit le serveur Tdarr maintenant et indique ce qu'il trouve.",
+        "de": "Liest den Tdarr-Server sofort und meldet, was er findet.",
+        "es": "Lee el servidor Tdarr ahora e indica lo que encuentra."
+      },
       "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "queue_empty",
+      "label": {
+        "en": "Tdarr queue emptied",
+        "fr": "File Tdarr vidée",
+        "de": "Tdarr-Warteschlange leer",
+        "es": "Cola de Tdarr vacía"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "Everything is processed: the transcode and health check queues are empty and no worker is busy any more.",
+        "fr": "Tout est traité : les files de transcodage et de contrôle sont vides et plus aucun travailleur n'est occupé.",
+        "de": "Alles ist erledigt: Transcodierungs- und Prüfwarteschlange sind leer, kein Worker arbeitet mehr.",
+        "es": "Todo está procesado: las colas de transcodificación y de comprobación están vacías y ningún trabajador está ocupado."
+      },
+      "fields": [],
+      "variables": [
+        {
+          "key": "device",
+          "type": "string",
+          "label": {
+            "en": "Server device",
+            "fr": "Appareil du serveur",
+            "de": "Gerät des Servers",
+            "es": "Dispositivo del servidor"
+          }
+        },
+        {
+          "key": "transcoded",
+          "type": "number",
+          "label": {
+            "en": "Files transcoded (total)",
+            "fr": "Fichiers transcodés (total)",
+            "de": "Transcodierte Dateien (gesamt)",
+            "es": "Archivos transcodificados (total)"
+          }
+        },
+        {
+          "key": "transcode_errors",
+          "type": "number",
+          "label": {
+            "en": "Transcode errors (total)",
+            "fr": "Transcodages en échec (total)",
+            "de": "Transcodierungsfehler (gesamt)",
+            "es": "Transcodificaciones fallidas (total)"
+          }
+        },
+        {
+          "key": "health_errors",
+          "type": "number",
+          "label": {
+            "en": "Health check errors (total)",
+            "fr": "Contrôles en échec (total)",
+            "de": "Integritätsfehler (gesamt)",
+            "es": "Comprobaciones fallidas (total)"
+          }
+        },
+        {
+          "key": "space_saved",
+          "type": "number",
+          "label": {
+            "en": "Space saved (GB)",
+            "fr": "Place gagnée (Go)",
+            "de": "Gesparter Speicher (GB)",
+            "es": "Espacio ahorrado (GB)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "file_failed",
+      "label": {
+        "en": "Tdarr file failed",
+        "fr": "Fichier Tdarr en échec",
+        "de": "Tdarr-Datei fehlgeschlagen",
+        "es": "Archivo de Tdarr fallido"
+      },
+      "description": {
+        "en": "A file has just failed its transcode or its health check.",
+        "fr": "Un fichier vient d'échouer à son transcodage ou à son contrôle sanitaire.",
+        "de": "Eine Datei ist gerade bei der Transcodierung oder der Integritätsprüfung gescheitert.",
+        "es": "Un archivo acaba de fallar en su transcodificación o en su comprobación."
       },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "label": {
+            "en": "Library (empty: any)",
+            "fr": "Bibliothèque (vide : n'importe laquelle)",
+            "de": "Bibliothek (leer: beliebig)",
+            "es": "Biblioteca (vacío: cualquiera)"
+          }
         },
         {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "key": "kind",
+          "type": "select",
+          "label": {
+            "en": "Step (empty: any)",
+            "fr": "Étape (vide : toutes)",
+            "de": "Schritt (leer: beliebig)",
+            "es": "Etapa (vacío: cualquiera)"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "transcode",
+              "label": {
+                "en": "Transcode",
+                "fr": "Transcodage",
+                "de": "Transcodierung",
+                "es": "Transcodificación"
+              }
+            },
+            {
+              "value": "health",
+              "label": {
+                "en": "Health check",
+                "fr": "Contrôle sanitaire",
+                "de": "Integritätsprüfung",
+                "es": "Comprobación de estado"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "device",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Library device",
+            "fr": "Appareil de la bibliothèque",
+            "de": "Gerät der Bibliothek",
+            "es": "Dispositivo de la biblioteca"
+          }
+        },
+        {
+          "key": "kind",
+          "type": "string",
+          "label": {
+            "en": "Step (transcode, health)",
+            "fr": "Étape (transcode, health)",
+            "de": "Schritt (transcode, health)",
+            "es": "Etapa (transcode, health)"
+          }
+        },
+        {
+          "key": "file",
+          "type": "string",
+          "label": {
+            "en": "File name",
+            "fr": "Nom du fichier",
+            "de": "Dateiname",
+            "es": "Nombre del archivo"
+          }
+        },
+        {
+          "key": "path",
+          "type": "string",
+          "label": {
+            "en": "Full path of the file",
+            "fr": "Chemin complet du fichier",
+            "de": "Vollständiger Pfad der Datei",
+            "es": "Ruta completa del archivo"
+          }
+        },
+        {
+          "key": "library",
+          "type": "string",
+          "label": {
+            "en": "Library name",
+            "fr": "Nom de la bibliothèque",
+            "de": "Name der Bibliothek",
+            "es": "Nombre de la biblioteca"
+          }
+        }
+      ]
+    },
+    {
+      "key": "node_offline",
+      "label": {
+        "en": "Tdarr node offline",
+        "fr": "Nœud Tdarr hors ligne",
+        "de": "Tdarr-Node offline",
+        "es": "Nodo de Tdarr sin conexión"
+      },
+      "description": {
+        "en": "A node that was connected to the Tdarr server disconnected (stopped, crashed, network).",
+        "fr": "Un nœud connecté au serveur Tdarr s'est déconnecté (arrêt, plantage, réseau).",
+        "de": "Ein mit dem Tdarr-Server verbundener Node hat sich getrennt (gestoppt, abgestürzt, Netzwerk).",
+        "es": "Un nodo conectado al servidor Tdarr se ha desconectado (parada, fallo, red)."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Node (empty: any)",
+            "fr": "Nœud (vide : n'importe lequel)",
+            "de": "Node (leer: beliebig)",
+            "es": "Nodo (vacío: cualquiera)"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "device",
+          "type": "string",
+          "label": {
+            "en": "Node device",
+            "fr": "Appareil du nœud",
+            "de": "Gerät des Nodes",
+            "es": "Dispositivo del nodo"
+          }
+        },
+        {
+          "key": "node",
+          "type": "string",
+          "label": {
+            "en": "Node name",
+            "fr": "Nom du nœud",
+            "de": "Name des Nodes",
+            "es": "Nombre del nodo"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "pause_processing",
+      "label": {
+        "en": "Pause Tdarr",
+        "fr": "Mettre Tdarr en pause",
+        "de": "Tdarr pausieren",
+        "es": "Pausar Tdarr"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Pause one node, or every node: the files in progress finish, no new one starts.",
+        "fr": "Met en pause un nœud, ou tous : les fichiers en cours se terminent, aucun nouveau ne démarre.",
+        "de": "Pausiert einen Node oder alle: Laufende Dateien werden fertig, keine neue startet.",
+        "es": "Pausa un nodo, o todos: los archivos en curso terminan, no empieza ninguno nuevo."
+      },
+      "timeout_seconds": 30,
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "label": {
+            "en": "Node (empty: all nodes)",
+            "fr": "Nœud (vide : tous les nœuds)",
+            "de": "Node (leer: alle Nodes)",
+            "es": "Nodo (vacío: todos los nodos)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "resume_processing",
+      "label": {
+        "en": "Resume Tdarr",
+        "fr": "Relancer Tdarr",
+        "de": "Tdarr fortsetzen",
+        "es": "Reanudar Tdarr"
+      },
+      "description": {
+        "en": "Resume one node, or every node paused from Gladys or Tdarr.",
+        "fr": "Relance un nœud, ou tous ceux mis en pause depuis Gladys ou Tdarr.",
+        "de": "Setzt einen Node fort, oder alle, die in Gladys oder Tdarr pausiert wurden.",
+        "es": "Reanuda un nodo, o todos los pausados desde Gladys o Tdarr."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Node (empty: all nodes)",
+            "fr": "Nœud (vide : tous les nœuds)",
+            "de": "Node (leer: alle Nodes)",
+            "es": "Nodo (vacío: todos los nodos)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "scan_library",
+      "label": {
+        "en": "Scan a Tdarr library",
+        "fr": "Scanner une bibliothèque Tdarr",
+        "de": "Tdarr-Bibliothek scannen",
+        "es": "Escanear una biblioteca de Tdarr"
+      },
+      "description": {
+        "en": "Look for new files in a library, or in every library (Scan → Find new).",
+        "fr": "Cherche les nouveaux fichiers d'une bibliothèque, ou de toutes (Scan → Find new).",
+        "de": "Sucht neue Dateien in einer Bibliothek oder in allen (Scan → Find new).",
+        "es": "Busca archivos nuevos en una biblioteca, o en todas (Scan → Find new)."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Library (empty: all)",
+            "fr": "Bibliothèque (vide : toutes)",
+            "de": "Bibliothek (leer: alle)",
+            "es": "Biblioteca (vacío: todas)"
+          }
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "libraries",
+          "type": "number",
+          "label": {
+            "en": "Libraries scanned",
+            "fr": "Bibliothèques scannées",
+            "de": "Gescannte Bibliotheken",
+            "es": "Bibliotecas escaneadas"
+          }
+        }
+      ]
+    },
+    {
+      "key": "read_summary",
+      "label": {
+        "en": "Read the Tdarr summary",
+        "fr": "Lire le résumé Tdarr",
+        "de": "Tdarr-Zusammenfassung lesen",
+        "es": "Leer el resumen de Tdarr"
+      },
+      "description": {
+        "en": "A sentence for a message or a voice announcement: queue, in progress, errors, space saved.",
+        "fr": "Une phrase pour un message ou une annonce vocale : file, en cours, échecs, place gagnée.",
+        "de": "Ein Satz für eine Nachricht oder Sprachansage: Warteschlange, in Arbeit, Fehler, gesparter Speicher.",
+        "es": "Una frase para un mensaje o un aviso de voz: cola, en curso, errores, espacio ahorrado."
+      },
+      "timeout_seconds": 30,
+      "fields": [],
+      "outputs": [
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary sentence",
+            "fr": "Phrase de résumé",
+            "de": "Zusammenfassung",
+            "es": "Frase de resumen"
+          }
+        },
+        {
+          "key": "queue",
+          "type": "number",
+          "label": {
+            "en": "Files in queue",
+            "fr": "Fichiers en file",
+            "de": "Dateien in der Warteschlange",
+            "es": "Archivos en cola"
+          }
+        },
+        {
+          "key": "in_progress",
+          "type": "number",
+          "label": {
+            "en": "Files in progress",
+            "fr": "Fichiers en cours",
+            "de": "Dateien in Arbeit",
+            "es": "Archivos en curso"
+          }
+        },
+        {
+          "key": "errors",
+          "type": "number",
+          "label": {
+            "en": "Files in error",
+            "fr": "Fichiers en échec",
+            "de": "Dateien mit Fehler",
+            "es": "Archivos con error"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "overview",
+      "label": {
+        "en": "Tdarr",
+        "fr": "Tdarr",
+        "de": "Tdarr",
+        "es": "Tdarr"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Queue, files in progress and in error, space saved, nodes, pause and resume.",
+        "fr": "File, fichiers en cours et en échec, place gagnée, nœuds, pause et reprise.",
+        "de": "Warteschlange, Dateien in Arbeit und mit Fehler, gesparter Speicher, Nodes, Pause.",
+        "es": "Cola, archivos en curso y con error, espacio ahorrado, nodos, pausa y reanudación."
+      },
+      "icon": "film",
+      "action_timeout_seconds": 30
     }
   ]
 }
