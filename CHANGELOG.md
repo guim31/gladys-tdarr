@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-19
+
 ### Added
 
 - Tdarr in Gladys: one device for the server (transcode and health check
@@ -27,4 +29,5 @@ the notes of the version's GitHub Release.
   allowed or not (read only), refresh interval, language of the feature names.
   Documentation in English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-tdarr/commits/main
+[Unreleased]: https://github.com/guim31/gladys-tdarr/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-tdarr/releases/tag/v1.0.0
