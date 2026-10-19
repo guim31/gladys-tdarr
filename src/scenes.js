@@ -26,7 +26,7 @@ export const SCENE_ACTIONS = {
   async read_summary(hub) {
     hub.ensureServer();
     // Read now: the sentence says what is true at the time of the scene.
-    await hub.pollAll();
+    await hub.refresh();
     const totals = hub.totals();
     return {
       summary: hub.summary(),

@@ -41,6 +41,7 @@ import {
   featureValues,
   libraryIds,
   nodeIds,
+  nodeSlug,
   serverIds,
 } from './devices.js';
 import {
@@ -185,7 +186,7 @@ export class TdarrHub {
       this.problem('devices', `Cannot read the devices of Gladys: ${err.message}`);
     }
     for (const name of this.saved.nodes) {
-      this.nodes.set(name, { name, id: null, online: false, workers: 0, paused: false });
+      this.nodes.set(nodeSlug(name), { name, id: null, online: false, workers: 0, paused: false });
     }
     await this.reconfigure(config);
   }
@@ -221,8 +222,11 @@ export class TdarrHub {
       }
     }
     this.devicesKey = null; // the language or the commands may have changed
-    await this.pollAll();
-    this.schedulePoll();
+    try {
+      await this.refresh();
+    } finally {
+      this.schedulePoll();
+    }
   }
 
   async stop() {
@@ -281,7 +285,7 @@ export class TdarrHub {
 
   /** "Search" in the Discovery tab: read the server, publish the devices again. */
   async rediscover() {
-    await this.pollAll();
+    await this.refresh();
     await this.publishDevices({ force: true });
   }
 
@@ -292,6 +296,8 @@ export class TdarrHub {
       return;
     }
     await this.publishStates({ force: true, only: device.external_id });
+    this.transports.delete(device.external_id);
+    await this.publishTransports();
     this.gladys.requestWidgetRefresh(WIDGET_KEY);
   }
 
@@ -324,6 +330,17 @@ export class TdarrHub {
       this.polling = null;
     });
     return this.polling;
+  }
+
+  /**
+   * A reading that starts after this call: a command or a new configuration
+   * must not get the answers of a reading already in flight.
+   */
+  async refresh() {
+    if (this.polling) {
+      await this.polling.catch(() => {});
+    }
+    return this.pollAll();
   }
 
   /** Gladys asks for a refresh (onPoll): read the server now. */
@@ -409,13 +426,16 @@ export class TdarrHub {
         }),
       ),
     );
-    this.server.piesKey = key;
+    // A library not read is read again at the next reading.
+    this.server.piesKey = answers.includes(null) ? null : key;
     this.server.piesAt = this.now();
     return new Map(libraries.map((library, index) => [library.id, parsePies(answers[index])]));
   }
 
   async applySuccess(next) {
     const previous = this.server;
+    // After an outage, a node missing at the first answer reconnects; it did not go offline.
+    const afterOutage = previous.reachable === false;
     if (this.error) {
       logger.info(`Tdarr ${this.config.url}: connection restored`);
     } else if (previous.reachable === null) {
@@ -425,40 +445,48 @@ export class TdarrHub {
     this.resolved('server');
 
     // Nodes: the ones listed are online, the others known stay offline.
-    const online = new Map(next.nodes.map((node) => [node.name, node]));
+    // Keyed by slug, the part of the external id ("Node 1" and "node-1" are one device).
+    const online = new Map();
+    for (const node of next.nodes) {
+      if (!online.has(nodeSlug(node.name))) {
+        online.set(nodeSlug(node.name), node);
+      }
+    }
     const wentOffline = [];
-    for (const [name, node] of this.nodes) {
-      if (!online.has(name) && node.online) {
-        wentOffline.push(node);
+    for (const [slug, node] of this.nodes) {
+      if (!online.has(slug) && node.online) {
+        if (!afterOutage) {
+          wentOffline.push(node);
+        }
         node.online = false;
         node.workers = 0;
-        logger.info(`Tdarr node ${name}: offline`);
+        logger.info(`Tdarr node ${node.name}: offline`);
       }
     }
     let nodesChanged = false;
-    for (const node of next.nodes) {
-      const known = this.nodes.get(node.name);
-      if (!known) {
+    for (const [slug, node] of online) {
+      const known = this.nodes.get(slug);
+      if (!known || known.name !== node.name) {
         nodesChanged = true;
       } else if (!known.online && previous.reachable !== null) {
         logger.info(`Tdarr node ${node.name}: online`);
       }
-      this.nodes.set(node.name, { ...node, online: true });
+      this.nodes.set(slug, { ...node, online: true });
     }
     if (nodesChanged) {
-      this.saved.nodes = [...this.nodes.keys()];
+      this.saved.nodes = [...this.nodes.values()].map((node) => node.name);
       this.store.save(this.saved);
     }
 
     // Libraries: the list follows Tdarr (a deleted library is no longer shown).
     const libraries = new Map();
     for (const library of next.libraries) {
-      const pies = next.pies ? next.pies.get(library.id) : this.libraries.get(library.id)?.pies;
+      const pies = next.pies?.get(library.id) ?? this.libraries.get(library.id)?.pies;
       libraries.set(library.id, { ...library, pies: pies ?? null });
     }
     this.libraries = libraries;
 
-    const inProgress = next.nodes.reduce((total, node) => total + node.workers, 0);
+    const inProgress = [...online.values()].reduce((total, node) => total + node.workers, 0);
     const { stats } = next;
     const waiting =
       stats.transcodeQueue === null || stats.healthQueue === null
@@ -473,7 +501,7 @@ export class TdarrHub {
       staged: next.staged,
       pausedAll: next.pausedAll,
       inProgress,
-      nodesOnline: next.nodes.length,
+      nodesOnline: online.size,
       busy: waiting === null ? previous.busy : waiting > 0,
     };
 
@@ -779,7 +807,7 @@ export class TdarrHub {
       throw new CommandError(pick(ERROR_TEXT[err.kind], this.config.language));
     }
     logger.info(`Tdarr: ${what} ${paused ? 'paused' : 'resumed'}`);
-    await this.pollAll();
+    await this.refresh();
     this.gladys.requestWidgetRefresh(WIDGET_KEY);
     return target;
   }
@@ -798,8 +826,11 @@ export class TdarrHub {
    */
   async scan(deviceExternalId) {
     this.ensureServer();
+    if (!this.config.allowControl) {
+      this.fail(ACTION_TEXT.controlOff);
+    }
     if (this.libraries.size === 0) {
-      await this.pollAll();
+      await this.refresh();
     }
     let libraries = [...this.libraries.values()];
     if (deviceExternalId) {
@@ -872,7 +903,7 @@ export class TdarrHub {
 
   /** "Test the connection": read the server now, one report. */
   async testConnection() {
-    await this.pollAll();
+    await this.refresh();
     const message = {};
     for (const [language, text] of Object.entries(REPORT_TEXT)) {
       if (!this.client || this.error) {

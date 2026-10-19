@@ -311,3 +311,52 @@ test('the container reads the server on its own timer, without onPoll', async (t
   assert.ok(w.tdarr.requests.length > before);
   assert.equal(w.fake.discoveredDevices[0].should_poll, false);
 });
+
+test('commands off: no library scan either', async (t) => {
+  const w = await world(t, { config: { ...CONFIG, allow_control: false } });
+  const ack = await w.fake.sceneAction('scan_library', {});
+  assert.equal(ack.success, false);
+  assert.deepEqual(w.tdarr.scans, []);
+});
+
+test('a command waits for the reading in flight, then reads again', async (t) => {
+  const w = await world(t);
+  const inFlight = w.hub.pollAll(); // a timer reading, started before the command
+  await w.fake.widgetAction('overview', 'pause_all', {}, { settings: {} });
+  await inFlight;
+  assert.equal(w.fake.lastState(serverFeature(w.gladys, 'paused')), 1);
+});
+
+test('after a server outage, the nodes that reconnect late fire no node_offline', async (t) => {
+  const tdarr = new FakeTdarr();
+  tdarr.addNode('GPU Node');
+  const w = await world(t, { tdarr });
+  tdarr.online = false;
+  await w.hub.pollAll();
+  tdarr.online = true;
+  tdarr.removeNode('GPU Node'); // not reconnected yet
+  await w.hub.pollAll();
+  assert.equal(events(w, 'node_offline').length, 0);
+  assert.equal(w.fake.lastState(nodeFeature(w.gladys, 'online', 'gpu-node')), 0);
+});
+
+test('two node names with the same slug are one device', async (t) => {
+  const tdarr = new FakeTdarr();
+  tdarr.addNode('GPU Node');
+  tdarr.addNode('gpu-node');
+  const w = await world(t, { tdarr });
+  const ids = w.fake.discoveredDevices.map((device) => device.external_id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal(w.fake.lastState(serverFeature(w.gladys, 'nodes_online')), 2);
+});
+
+test('a bug in the first reading at start does not stop the timer', async (t) => {
+  const w = await createWorld({ timers: true, connect: false });
+  t.after(() => w.app.stop());
+  w.hub.readPies = async () => {
+    throw new TypeError('parser bug');
+  };
+  await w.gladys.connect();
+  await w.app.ready;
+  assert.ok(w.hub.pollTimer, 'the timer is armed');
+});
