@@ -1,0 +1,111 @@
+{
+  "Csmjqig": {
+    "_id": "Csmjqig",
+    "nodeName": "InternalNode",
+    "remoteAddress": "127.0.0.1",
+    "config": {
+      "nodeID": "Csmjqig",
+      "nodeName": "InternalNode",
+      "serverURL": "http://0.0.0.0:8266",
+      "serverIP": "0.0.0.0",
+      "serverPort": "8266",
+      "handbrakePath": "",
+      "ffmpegPath": "",
+      "mkvpropeditPath": "",
+      "pathTranslators": [
+        {
+          "server": "",
+          "node": ""
+        }
+      ],
+      "nodeType": "mapped",
+      "unmappedNodeCache": "/app/unmappedNodeCache",
+      "logLevel": "INFO",
+      "priority": -1.0,
+      "cronPluginUpdate": "",
+      "apiKey": "tapi_000000000000000000000000",
+      "maxLogSizeMB": 10,
+      "pollInterval": 2000,
+      "startPaused": false,
+      "platform_arch_isdocker": "linux_x64_docker_true",
+      "processPid": 569,
+      "nodeRegisteredCount": 0,
+      "seededWorkerLimits": {}
+    },
+    "workers": {},
+    "resStats": {
+      "process": {
+        "uptime": 646,
+        "heapUsedMB": "23.2",
+        "heapTotalMB": "2040.1"
+      },
+      "os": {
+        "cpuPerc": "100.00",
+        "memUsedGB": "12.3",
+        "memTotalGB": "15.4"
+      }
+    },
+    "workerLimits": {
+      "healthcheckcpu": 1,
+      "healthcheckgpu": 0,
+      "transcodecpu": 1,
+      "transcodegpu": 0
+    },
+    "schedule": [
+      {
+        "_id": "00-01",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 0
+      },
+      {
+        "_id": "01-02",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 0
+      }
+    ],
+    "gpuSelect": "-",
+    "nodeTags": "mapped",
+    "allowGpuDoCpu": false,
+    "maxGpuWorkers": 100,
+    "nodePaused": false,
+    "deleteCacheAnyStageError": true,
+    "scheduleEnabled": false,
+    "processPriority": "normal",
+    "thoroughHealthCheckCpuExtraInputArgs": "",
+    "thoroughHealthCheckGpuExtraInputArgs": "",
+    "thoroughHealthCheckCpuExtraArgs": "",
+    "thoroughHealthCheckGpuExtraArgs": "",
+    "priority": 0.0,
+    "queueLengths": {
+      "healthcheckcpu": 0,
+      "healthcheckgpu": 0,
+      "transcodecpu": 0,
+      "transcodegpu": 0
+    },
+    "librariesToNotProcess": {},
+    "processes": {
+      "569": {
+        "ppid": 261,
+        "pid": 569,
+        "execPath": "/app/Tdarr_Node/rust/Tdarr_Node_Rust",
+        "filename": "/app/Tdarr_Node/rust/Tdarr_Node_Rust",
+        "lastUpdateTime": 1792440109031,
+        "memory": {
+          "rss": 24281088,
+          "heapTotal": 2139156480,
+          "heapUsed": 24281088,
+          "external": 0,
+          "arrayBuffers": 0
+        }
+      }
+    },
+    "nodeEngine": "rust",
+    "protocolVersion": "rust-bootstrap-1",
+    "initPluginDownload": false,
+    "lastSeenTime": 1792440109555
+  }
+}

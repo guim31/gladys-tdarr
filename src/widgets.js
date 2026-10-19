@@ -1,169 +1,226 @@
 // -----------------------------------------------------------------------------
-// Dashboard widgets (SDK v0.14+, Gladys 5.1+).
+// Dashboard widget (manifest `widgets`, Gladys 5.1+): `overview`.
 //
-// A widget puts the integration's own data on the Gladys dashboard without a
-// dedicated core widget. The manifest `widgets` field declares its identity
-// (key, label, icon, optional per-instance `settings`); at runtime the
-// integration returns a DECLARATIVE content — `text`, `value`, `gauge`,
-// `status`, `chart`, `card-list`, `image`, `button` — that the core renders
-// with its own theme, dark mode and translations. No HTML, no CSS.
+// The use case: is Tdarr working, at a glance on the wall tablet. Four tiles
+// (files in queue, in progress, in error, space saved), one status row per
+// node (active workers, paused, offline), and one button that pauses every
+// node or resumes them, when the configuration allows the commands.
 //
-// Each entry of WIDGETS is keyed by the widget `key` and exposes:
-//   - get(gladys, { settings, language, units, config }): the content,
-//     registered by index.js with `gladys.onWidgetGet(key, ...)`;
-//   - action(gladys, { actionKey, params, settings, config }) (optional): a
-//     tapped `button` carrying an `action`, registered with
-//     `gladys.onWidgetAction`.
-//
-// Check your contents in the tests with `validateWidgetContent` (exported by
-// the SDK, see test/widgets.test.js), or run with DEBUG=gladys-integration-sdk
-// to have the SDK log every violation of the vocabulary and the budget.
+// The figures are sent as values, not bound to device features, so the widget
+// works before the devices are added to Gladys.
 // -----------------------------------------------------------------------------
 
-import {
-  createLogger,
-  DEVICE_FEATURE_CATEGORIES,
-  DEVICE_TRANSPORTS,
-  WIDGET_COLORS,
-} from '@gladysassistant/integration-sdk';
-import { identifyDevice } from './devices/index.js';
-import { weatherStation } from './devices/weatherStation.js';
-import { plug } from './devices/plug.js';
-import { light } from './devices/light.js';
+import { WIDGET_COLORS } from '@gladysassistant/integration-sdk';
+import { ERROR_KINDS } from './tdarr/client.js';
+import { WIDGET_KEY } from './hub.js';
+import { ERROR_TEXT, pick } from './texts.js';
 
-const logger = createLogger({ name: 'widgets' });
+// Action keys of the buttons: permanent once published.
+export const ACTIONS = Object.freeze({
+  PAUSE_ALL: 'pause_all',
+  RESUME_ALL: 'resume_all',
+});
 
-// Widget key, as declared in the manifest `widgets` field.
-export const DEMO_STATUS_WIDGET = 'demo_status';
+export const TEXT = {
+  pick: {
+    en: 'Enter the address of your Tdarr server in the configuration of the integration.',
+    fr: "Saisissez l'adresse de votre serveur Tdarr dans la configuration de l'intégration.",
+    de: 'Gib die Adresse deines Tdarr-Servers in der Konfiguration der Integration ein.',
+    es: 'Introduzca la dirección de su servidor Tdarr en la configuración de la integración.',
+  },
+  waiting: {
+    en: 'Waiting for the first reading of Tdarr…',
+    fr: 'En attente de la première lecture de Tdarr…',
+    de: 'Warte auf die erste Abfrage von Tdarr…',
+    es: 'Esperando la primera lectura de Tdarr…',
+  },
+  queue: { en: 'In queue', fr: 'En file', de: 'Warteschlange', es: 'En cola' },
+  inProgress: { en: 'In progress', fr: 'En cours', de: 'In Arbeit', es: 'En curso' },
+  errors: { en: 'In error', fr: 'En échec', de: 'Mit Fehler', es: 'Con error' },
+  spaceSaved: { en: 'Space saved', fr: 'Place gagnée', de: 'Gespart', es: 'Ahorrado' },
+  workers: { en: 'worker(s)', fr: 'travailleur(s)', de: 'Worker', es: 'trabajador(es)' },
+  idle: { en: 'Idle', fr: 'Inactif', de: 'Untätig', es: 'Inactivo' },
+  paused: { en: 'Paused', fr: 'En pause', de: 'Pausiert', es: 'En pausa' },
+  offline: { en: 'Offline', fr: 'Hors ligne', de: 'Offline', es: 'Sin conexión' },
+  allPaused: {
+    en: 'All nodes paused',
+    fr: 'Tous en pause',
+    de: 'Alle pausiert',
+    es: 'Todos en pausa',
+  },
+  noNode: { en: 'No node', fr: 'Aucun nœud', de: 'Kein Node', es: 'Ningún nodo' },
+  pauseAll: {
+    en: 'Pause all',
+    fr: 'Tout mettre en pause',
+    de: 'Alle pausieren',
+    es: 'Pausar todo',
+  },
+  resumeAll: { en: 'Resume all', fr: 'Tout reprendre', de: 'Alle fortsetzen', es: 'Reanudar todo' },
+  unit: { en: 'GB', fr: 'Go', de: 'GB', es: 'GB' },
+};
 
-// Keys of the `button` actions the demo_status content declares.
-const DEMO_STATUS_ACTIONS = { IDENTIFY_LIGHT: 'identify_light' };
-
-// How the plug transport reads in the status list.
-const TRANSPORT_STATUS = {
-  [DEVICE_TRANSPORTS.LOCAL]: { value: { en: 'Local', fr: 'Locale' }, color: WIDGET_COLORS.SUCCESS },
-  [DEVICE_TRANSPORTS.CLOUD]: { value: { en: 'Cloud', fr: 'Cloud' }, color: WIDGET_COLORS.INFO },
-  [DEVICE_TRANSPORTS.UNREACHABLE]: {
-    value: { en: 'Unreachable', fr: 'Injoignable' },
-    color: WIDGET_COLORS.DANGER,
+// Toasts after a tap (≤ 200 characters).
+export const DONE_TEXT = {
+  pauseAll: {
+    en: 'Every Tdarr node is paused: the files in progress finish, no new one starts.',
+    fr: 'Tous les nœuds Tdarr sont en pause : les fichiers en cours se terminent, aucun nouveau ne démarre.',
+    de: 'Alle Tdarr-Nodes sind pausiert: Laufende Dateien werden fertig, keine neue startet.',
+    es: 'Todos los nodos Tdarr están en pausa: los archivos en curso terminan, no empieza ninguno nuevo.',
+  },
+  resumeAll: {
+    en: 'Every Tdarr node resumed.',
+    fr: 'Tous les nœuds Tdarr ont repris.',
+    de: 'Alle Tdarr-Nodes laufen wieder.',
+    es: 'Todos los nodos Tdarr se han reanudado.',
   },
 };
 
-// A live tile references a feature by its external_id: read it from the
-// discovery payload itself, so the widget and the device never disagree.
-function featureExternalId(gladys, config, blueprint, category) {
-  const device = blueprint.buildDevice(gladys, config);
-  return device.features.find((feature) => feature.category === category).external_id;
+const t = (text, language) => pick(text, language);
+const fit = (text, max) => (text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text);
+
+function message(text, language) {
+  return {
+    ttl_seconds: 300,
+    components: [{ type: 'text', variant: 'body', text: fit(t(text, language), 300) }],
+  };
 }
 
-function plugConnectionStatus(gladys, config) {
-  const { transport, degraded } = plug.transport(gladys, config);
-  const { value, color } = TRANSPORT_STATUS[transport];
-  if (degraded) {
+/** The status row of one node. */
+export function nodeRow(node, pausedAll, language) {
+  const label = fit(node.name, 40);
+  if (!node.online) {
     return {
-      value: { en: `${value.en} (degraded mode)`, fr: `${value.fr} (mode dégradé)` },
-      color: WIDGET_COLORS.WARNING,
+      label,
+      icon: 'wifi-off',
+      value: t(TEXT.offline, language),
+      color: WIDGET_COLORS.DANGER,
     };
   }
-  return { value, color };
+  if (node.paused || pausedAll) {
+    return { label, icon: 'pause', value: t(TEXT.paused, language), color: WIDGET_COLORS.WARNING };
+  }
+  if (node.workers > 0) {
+    return {
+      label,
+      icon: 'cpu',
+      value: fit(`${node.workers} ${t(TEXT.workers, language)}`, 40),
+      color: WIDGET_COLORS.SUCCESS,
+    };
+  }
+  return { label, icon: 'cpu', value: t(TEXT.idle, language), color: WIDGET_COLORS.NEUTRAL };
+}
+
+async function get(hub, { language = 'en' } = {}) {
+  if (!hub.client) {
+    return message(TEXT.pick, language);
+  }
+  if (hub.error) {
+    const unreachable = hub.error.kind === ERROR_KINDS.UNREACHABLE;
+    return {
+      ttl_seconds: 120,
+      components: [
+        {
+          type: 'status',
+          items: [
+            {
+              label: 'Tdarr',
+              icon: 'alert-triangle',
+              value: fit(t(unreachable ? TEXT.offline : TEXT.errors, language), 40),
+              color: WIDGET_COLORS.DANGER,
+            },
+          ],
+        },
+        { type: 'text', variant: 'body', text: fit(t(ERROR_TEXT[hub.error.kind], language), 300) },
+      ],
+    };
+  }
+  if (!hub.server.reachable) {
+    return message(TEXT.waiting, language);
+  }
+  const totals = hub.totals();
+  const components = [
+    { type: 'value', value: totals.queue, label: t(TEXT.queue, language), icon: 'list' },
+    {
+      type: 'value',
+      value: totals.inProgress,
+      label: t(TEXT.inProgress, language),
+      icon: 'loader',
+      color: totals.inProgress ? WIDGET_COLORS.SUCCESS : WIDGET_COLORS.NEUTRAL,
+    },
+    {
+      type: 'value',
+      value: totals.errors,
+      label: t(TEXT.errors, language),
+      icon: 'alert-circle',
+      color: totals.errors ? WIDGET_COLORS.DANGER : WIDGET_COLORS.NEUTRAL,
+    },
+    {
+      type: 'value',
+      value: totals.spaceSaved,
+      unit: t(TEXT.unit, language),
+      label: t(TEXT.spaceSaved, language),
+      icon: 'hard-drive',
+    },
+  ];
+  const nodes = [...hub.nodes.values()].sort(
+    (a, b) => Number(b.online) - Number(a.online) || a.name.localeCompare(b.name),
+  );
+  const rows = nodes.slice(0, 10).map((node) => nodeRow(node, hub.server.pausedAll, language));
+  if (hub.server.pausedAll && rows.length < 10) {
+    rows.unshift({
+      label: 'Tdarr',
+      icon: 'pause-circle',
+      value: t(TEXT.allPaused, language),
+      color: WIDGET_COLORS.WARNING,
+    });
+  }
+  components.push({
+    type: 'status',
+    items: rows.length
+      ? rows
+      : [
+          {
+            label: 'Tdarr',
+            icon: 'cpu',
+            value: t(TEXT.noNode, language),
+            color: WIDGET_COLORS.WARNING,
+          },
+        ],
+  });
+  if (hub.config.allowControl) {
+    components.push(
+      hub.server.pausedAll
+        ? {
+            type: 'button',
+            label: t(TEXT.resumeAll, language),
+            icon: 'play',
+            style: 'secondary',
+            action: { key: ACTIONS.RESUME_ALL },
+          }
+        : {
+            type: 'button',
+            label: t(TEXT.pauseAll, language),
+            icon: 'pause',
+            style: 'secondary',
+            action: { key: ACTIONS.PAUSE_ALL },
+          },
+    );
+  }
+  return { ttl_seconds: 300, components };
+}
+
+async function action(hub, { actionKey }) {
+  if (actionKey === ACTIONS.PAUSE_ALL) {
+    await hub.setPaused(null, true);
+    return { message: DONE_TEXT.pauseAll };
+  }
+  if (actionKey === ACTIONS.RESUME_ALL) {
+    await hub.setPaused(null, false);
+    return { message: DONE_TEXT.resumeAll };
+  }
+  throw new Error(`Unknown action ${actionKey}`);
 }
 
 export const WIDGETS = {
-  [DEMO_STATUS_WIDGET]: {
-    // `settings` holds the per-instance values of the declared `settings`
-    // (none here); `language` and `units` are those of the user viewing the
-    // dashboard, for the values you format yourself. Multi-language objects
-    // (`{ en, fr }`) are picked by the core, like everywhere else.
-    async get(gladys, { config }) {
-      logger.debug(`onWidgetGet <- ${DEMO_STATUS_WIDGET}`);
-      return {
-        // Reload policy: the computed parts below only change with the
-        // config, and index.js nudges the widget on every (re)connection and
-        // config update (see refreshWidgets) — the TTL is just a safety net.
-        ttl_seconds: 300,
-        components: [
-          // Device-bound tiles: LIVE, they follow the published states over
-          // the core's real-time path. No TTL, no nudge involved.
-          {
-            type: 'value',
-            label: { en: 'Temperature', fr: 'Température' },
-            icon: 'thermometer',
-            device_feature: featureExternalId(
-              gladys,
-              config,
-              weatherStation,
-              DEVICE_FEATURE_CATEGORIES.TEMPERATURE_SENSOR,
-            ),
-          },
-          {
-            type: 'value',
-            label: { en: 'Office plug', fr: 'Prise du bureau' },
-            icon: 'zap',
-            device_feature: featureExternalId(
-              gladys,
-              config,
-              plug,
-              DEVICE_FEATURE_CATEGORIES.ENERGY_SENSOR,
-            ),
-          },
-          // Computed rows: what the integration knows that no device feature
-          // carries. Served from the core cache until the TTL or a nudge.
-          {
-            type: 'status',
-            items: [
-              {
-                label: { en: 'Plug connection', fr: 'Connexion de la prise' },
-                icon: 'wifi',
-                ...plugConnectionStatus(gladys, config),
-              },
-              {
-                label: { en: 'Observed location', fr: 'Position observée' },
-                icon: 'map-pin',
-                value: `${config.latitude.toFixed(2)}, ${config.longitude.toFixed(2)}`,
-                color: WIDGET_COLORS.NEUTRAL,
-              },
-            ],
-          },
-          // `params` are declared HERE and sent back as-is: the handler never
-          // receives user input (a dashboard can hang on a public wall).
-          {
-            type: 'button',
-            label: { en: 'Identify the light', fr: 'Identifier la lampe' },
-            icon: 'eye',
-            style: 'secondary',
-            action: {
-              key: DEMO_STATUS_ACTIONS.IDENTIFY_LIGHT,
-              params: { device: light.deviceExternalId(gladys) },
-            },
-          },
-        ],
-      };
-    },
-
-    // Resolve an optional toast (string or multi-language object, ≤ 200
-    // characters). After a successful action the core drops the cached
-    // content and every open dashboard refetches it: no nudge needed.
-    async action(gladys, { actionKey, params, config }) {
-      logger.info(`onWidgetAction <- ${DEMO_STATUS_WIDGET}.${actionKey}`);
-      if (actionKey === DEMO_STATUS_ACTIONS.IDENTIFY_LIGHT) {
-        return identifyDevice(gladys, params.device, config);
-      }
-      // Throwing acks the action as failed: the message reaches the user.
-      throw new Error(`Unknown widget action: ${actionKey}`);
-    },
-  },
+  [WIDGET_KEY]: { get, action },
 };
-
-/**
- * Freshness nudge: ask the core to re-pull every widget NOW instead of
- * waiting for the content TTL. Call it when you KNOW a computed content
- * changed (here: the config, which drives the plug transport and the observed
- * location) — and after every (re)connection, since the nudges are
- * fire-and-forget: rate-limited core-side to 1 per 10 s per widget, dropped
- * silently while disconnected.
- */
-export function refreshWidgets(gladys) {
-  for (const key of Object.keys(WIDGETS)) {
-    gladys.requestWidgetRefresh(key);
-  }
-}

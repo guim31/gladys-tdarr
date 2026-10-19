@@ -1,0 +1,94 @@
+[
+  {
+    "_id": "LibMovies01",
+    "name": "Movies",
+    "folder": "/media/movies",
+    "cache": "/temp",
+    "output": "",
+    "folderToFolderConversion": false,
+    "processLibrary": true,
+    "scanOnStart": false,
+    "containerFilter": "mkv,mp4",
+    "healthcheck": "quick",
+    "scanButtons": true,
+    "totalHealthCheckCount": 10.0,
+    "handbrakescan": false,
+    "ffmpegscan": true,
+    "handbrake": false,
+    "ffmpeg": true,
+    "presetFFMPEG": ", -map 0 -c:v libx265 -preset ultrafast -crf 45 -c:a copy",
+    "container": ".mkv",
+    "decisionMaker": {
+      "settingsPlugin": false,
+      "settingsFlows": false,
+      "settingsVideo": true,
+      "videoExcludeSwitch": true,
+      "video_codec_names_exclude": [
+        {
+          "codec": "hevc",
+          "checked": true
+        }
+      ],
+      "video_size_range_include": {
+        "min": 0,
+        "max": 100000
+      },
+      "video_height_range_include": {
+        "min": 0,
+        "max": 3000
+      },
+      "video_width_range_include": {
+        "min": 0,
+        "max": 4000
+      },
+      "settingsAudio": false
+    },
+    "preset": ", -map 0 -c:v libx265 -preset ultrafast -crf 45 -c:a copy",
+    "totalTranscodeCount": 5.0
+  },
+  {
+    "_id": "LibShows02",
+    "name": "TV Shows",
+    "folder": "/media/shows",
+    "cache": "/temp",
+    "output": "",
+    "folderToFolderConversion": false,
+    "processLibrary": true,
+    "scanOnStart": false,
+    "containerFilter": "mkv,mp4",
+    "healthcheck": "quick",
+    "handbrakescan": false,
+    "ffmpegscan": true,
+    "handbrake": false,
+    "ffmpeg": true,
+    "preset": "-c:v libx265",
+    "container": ".mkv",
+    "decisionMaker": {
+      "settingsPlugin": false,
+      "settingsFlows": false,
+      "settingsVideo": true,
+      "videoExcludeSwitch": true,
+      "video_codec_names_exclude": [
+        {
+          "codec": "hevc",
+          "checked": true
+        }
+      ],
+      "video_size_range_include": {
+        "min": 0,
+        "max": 100000
+      },
+      "video_height_range_include": {
+        "min": 0,
+        "max": 3000
+      },
+      "video_width_range_include": {
+        "min": 0,
+        "max": 4000
+      },
+      "settingsAudio": false
+    },
+    "scanButtons": true,
+    "totalHealthCheckCount": 2.0
+  }
+]

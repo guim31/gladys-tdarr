@@ -1,0 +1,79 @@
+{
+  "array": [
+    {
+      "_id": "/media/shows/Show S01E02.mkv",
+      "file": "/media/shows/Show S01E02.mkv",
+      "fileNameWithoutExtension": "Show S01E02",
+      "DB": "LibShows02",
+      "footprintId": "FF6kPYg",
+      "hasClosedCaptions": false,
+      "container": "mkv",
+      "scannerReads": {
+        "ffProbeRead": "success"
+      },
+      "file_size": 0.13330650329589844,
+      "video_resolution": "480p",
+      "fileMedium": "video",
+      "video_codec_name": "h264",
+      "audio_codec_name": "aac",
+      "lastPluginDetails": "none",
+      "createdAt": 1792440086149,
+      "bit_rate": 277965,
+      "duration": 4,
+      "statSync": {
+        "mtimeMs": 1792440085907.3762,
+        "ctimeMs": 1792440085909.3762,
+        "nlink": 1
+      },
+      "HealthCheck": "Success",
+      "TranscodeDecisionMaker": "Transcode error",
+      "lastHealthCheckDate": 1792440100415,
+      "holdUntil": 0,
+      "lastTranscodeDate": 1792440099038,
+      "bumped": false,
+      "history": "",
+      "oldSize": 0.00013018213212490082,
+      "newSize": 0,
+      "newVsOldRatio": 0,
+      "videoStreamIndex": 0
+    },
+    {
+      "_id": "/media/shows/Show S01E01.mkv",
+      "file": "/media/shows/Show S01E01.mkv",
+      "fileNameWithoutExtension": "Show S01E01",
+      "DB": "LibShows02",
+      "footprintId": "Lp5r64G",
+      "hasClosedCaptions": false,
+      "container": "mkv",
+      "scannerReads": {
+        "ffProbeRead": "success"
+      },
+      "file_size": 0.13330650329589844,
+      "video_resolution": "480p",
+      "fileMedium": "video",
+      "video_codec_name": "h264",
+      "audio_codec_name": "aac",
+      "lastPluginDetails": "none",
+      "createdAt": 1792440086129,
+      "bit_rate": 277965,
+      "duration": 4,
+      "statSync": {
+        "mtimeMs": 1792440085905.3762,
+        "ctimeMs": 1792440085909.3762,
+        "nlink": 1
+      },
+      "HealthCheck": "Success",
+      "TranscodeDecisionMaker": "Transcode error",
+      "lastHealthCheckDate": 1792440099094,
+      "holdUntil": 0,
+      "lastTranscodeDate": 1792440096584,
+      "bumped": false,
+      "history": "",
+      "oldSize": 0.00013018213212490082,
+      "newSize": 0,
+      "newVsOldRatio": 0,
+      "videoStreamIndex": 0
+    }
+  ],
+  "totalCount": 2
+}

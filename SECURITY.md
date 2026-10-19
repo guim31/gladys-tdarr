@@ -30,6 +30,14 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+The integration stores under `/data` only the address of the Tdarr server read
+last, the names of the nodes it has seen and the date of the newest file error
+announced. The API key of Tdarr stays in the configuration of Gladys: it is
+sent to the Tdarr server only, in the `x-api-key` header, and never written to
+the logs. The answers of Tdarr hold the API keys of the nodes and the Tdarr Pro
+key: the integration keeps neither. It only talks to the address configured,
+over the local network; no cloud service, no inbound port.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and Tdarr itself.

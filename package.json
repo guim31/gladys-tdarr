@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-tdarr",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Tdarr (distributed media transcoding) in Gladys Assistant: queues, nodes, failures, space saved.",
   "type": "module",
   "main": "index.js",
   "scripts": {
