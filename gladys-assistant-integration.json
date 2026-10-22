@@ -8,8 +8,8 @@
     "de": "Tdarr in Gladys: Transcodierung, Nodes, fehlgeschlagene Dateien, gesparter Speicher, Pause.",
     "es": "Tdarr en Gladys: cola de transcodificación, nodos, archivos fallidos, espacio ahorrado, pausa."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/guim31/gladys-tdarr:1.0.0",
+  "version": "1.0.1",
+  "docker_image": "ghcr.io/guim31/gladys-tdarr:1.0.1",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/guim31/gladys-tdarr/main/cover.png",
   "categories": ["multimedia"],
